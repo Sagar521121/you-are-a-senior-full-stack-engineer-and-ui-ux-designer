@@ -65,25 +65,44 @@ export default {
   		},
   		keyframes: {
   			'accordion-down': {
-  				from: {
-  					height: '0'
-  				},
-  				to: {
-  					height: 'var(--radix-accordion-content-height)'
-  				}
+  				from: { height: '0' },
+  				to: { height: 'var(--radix-accordion-content-height)' }
   			},
   			'accordion-up': {
-  				from: {
-  					height: 'var(--radix-accordion-content-height)'
-  				},
-  				to: {
-  					height: '0'
-  				}
+  				from: { height: 'var(--radix-accordion-content-height)' },
+  				to: { height: '0' }
+  			},
+  			'float': {
+  				'0%, 100%': { transform: 'translateY(0px)' },
+  				'50%': { transform: 'translateY(-10px)' }
+  			},
+  			'slide-up': {
+  				from: { opacity: '0', transform: 'translateY(20px)' },
+  				to: { opacity: '1', transform: 'translateY(0)' }
+  			},
+  			'fade-in': {
+  				from: { opacity: '0' },
+  				to: { opacity: '1' }
+  			},
+  			'scale-in': {
+  				from: { opacity: '0', transform: 'scale(0.95)' },
+  				to: { opacity: '1', transform: 'scale(1)' }
+  			},
+  			'heart-beat': {
+  				'0%, 100%': { transform: 'scale(1)' },
+  				'25%': { transform: 'scale(1.1)' },
+  				'50%': { transform: 'scale(1)' },
+  				'75%': { transform: 'scale(1.05)' }
   			}
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+  			'float': 'float 6s ease-in-out infinite',
+  			'slide-up': 'slide-up 0.5s ease-out forwards',
+  			'fade-in': 'fade-in 0.4s ease-out forwards',
+  			'scale-in': 'scale-in 0.3s ease-out forwards',
+  			'heart-beat': 'heart-beat 1.5s ease-in-out infinite'
   		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',
@@ -95,39 +114,9 @@ export default {
   			'2xl': 'var(--shadow-2xl)'
   		},
   		fontFamily: {
-  			sans: [
-  				'Inter',
-  				'ui-sans-serif',
-  				'system-ui',
-  				'-apple-system',
-  				'BlinkMacSystemFont',
-  				'Segoe UI',
-  				'Roboto',
-  				'Helvetica Neue',
-  				'Arial',
-  				'Noto Sans',
-  				'sans-serif'
-  			],
-  			serif: [
-  				'Lora',
-  				'ui-serif',
-  				'Georgia',
-  				'Cambria',
-  				'Times New Roman',
-  				'Times',
-  				'serif'
-  			],
-  			mono: [
-  				'Space Mono',
-  				'ui-monospace',
-  				'SFMono-Regular',
-  				'Menlo',
-  				'Monaco',
-  				'Consolas',
-  				'Liberation Mono',
-  				'Courier New',
-  				'monospace'
-  			]
+  			sans: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+  			serif: ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
+  			mono: ['ui-monospace', 'SFMono-Regular', 'monospace']
   		}
   	}
   },
