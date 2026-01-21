@@ -1,0 +1,329 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { User, GraduationCap, BookOpen, Sparkles, Settings, Check } from 'lucide-react';
+import { toast } from 'sonner';
+import { validateUniversityEmail } from '@/lib/supabase-helpers';
+import type { Database } from '@/integrations/supabase/types';
+
+type GenderType = Database['public']['Enums']['gender_type'];
+type YearType = Database['public']['Enums']['year_type'];
+type PreferenceType = Database['public']['Enums']['preference_type'];
+
+const ProfilePage = () => {
+  const navigate = useNavigate();
+  const { user, profile, preferences, refreshProfile, refreshPreferences } = useAuth();
+  
+  const [firstName, setFirstName] = useState('');
+  const [gender, setGender] = useState<GenderType>('boy');
+  const [year, setYear] = useState<YearType>('1st');
+  const [stream, setStream] = useState('');
+  const [funPrompt, setFunPrompt] = useState('');
+  const [prefYear, setPrefYear] = useState<PreferenceType>('any');
+  const [prefStream, setPrefStream] = useState<PreferenceType>('any');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setFirstName(profile.first_name);
+      setGender(profile.gender);
+      setYear(profile.year);
+      setStream(profile.stream);
+      setFunPrompt(profile.fun_prompt || '');
+    }
+    if (preferences) {
+      setPrefYear(preferences.preferred_year || 'any');
+      setPrefStream(preferences.preferred_stream || 'any');
+    }
+  }, [profile, preferences]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setLoading(true);
+
+    try {
+      const { university } = validateUniversityEmail(user.email || '');
+      
+      if (profile) {
+        // Update existing profile
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            first_name: firstName,
+            gender,
+            year,
+            stream,
+            fun_prompt: funPrompt || null
+          })
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+      } else {
+        // Create new profile
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            first_name: firstName,
+            gender,
+            year,
+            stream,
+            university: university || 'Unknown',
+            fun_prompt: funPrompt || null
+          });
+
+        if (error) throw error;
+      }
+
+      // Handle preferences
+      if (preferences) {
+        const { error } = await supabase
+          .from('user_preferences')
+          .update({
+            preferred_year: prefYear,
+            preferred_stream: prefStream
+          })
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('user_preferences')
+          .insert({
+            user_id: user.id,
+            preferred_year: prefYear,
+            preferred_stream: prefStream
+          });
+
+        if (error) throw error;
+      }
+
+      await refreshProfile();
+      await refreshPreferences();
+      toast.success('Profile saved successfully!');
+      
+      if (!profile) {
+        navigate('/match');
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const streams = [
+    'Computer Science',
+    'Engineering',
+    'Business',
+    'Arts',
+    'Science',
+    'Medicine',
+    'Law',
+    'Education',
+    'Design',
+    'Other'
+  ];
+
+  const funPromptSuggestions = [
+    "My ideal prom night includes...",
+    "The song I'd love to dance to is...",
+    "Three words that describe me...",
+    "I'm secretly good at...",
+    "My go-to dance move is..."
+  ];
+
+  return (
+    <AppLayout showNav={!!profile}>
+      <div className="max-w-md mx-auto animate-fade-in">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl gradient-primary flex items-center justify-center shadow-glow">
+            {profile ? <Settings className="w-8 h-8 text-primary-foreground" /> : <User className="w-8 h-8 text-primary-foreground" />}
+          </div>
+          <h1 className="text-2xl font-serif font-bold text-foreground mb-1">
+            {profile ? 'Edit Profile' : 'Create Your Profile'}
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            {profile ? 'Update your information' : 'Tell us a bit about yourself'}
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Info Card */}
+          <div className="bg-card rounded-2xl shadow-card border border-border/50 p-6 space-y-4">
+            <h3 className="font-semibold flex items-center gap-2">
+              <User className="w-4 h-4 text-primary" />
+              Basic Info
+            </h3>
+
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Your first name"
+                required
+                className="h-12 rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>I am a...</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {(['boy', 'girl'] as GenderType[]).map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGender(g)}
+                    className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                      gender === g
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <span className="text-2xl mb-1 block">{g === 'boy' ? '👨' : '👩'}</span>
+                    <span className="text-sm font-medium capitalize">{g}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Academic Info Card */}
+          <div className="bg-card rounded-2xl shadow-card border border-border/50 p-6 space-y-4">
+            <h3 className="font-semibold flex items-center gap-2">
+              <GraduationCap className="w-4 h-4 text-primary" />
+              Academic Info
+            </h3>
+
+            <div className="space-y-2">
+              <Label>Year</Label>
+              <Select value={year} onValueChange={(v) => setYear(v as YearType)}>
+                <SelectTrigger className="h-12 rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1st">Freshman (1st Year)</SelectItem>
+                  <SelectItem value="2nd">Sophomore (2nd Year)</SelectItem>
+                  <SelectItem value="3rd">Junior (3rd Year)</SelectItem>
+                  <SelectItem value="4th">Senior (4th Year)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Stream / Major</Label>
+              <Select value={stream} onValueChange={setStream}>
+                <SelectTrigger className="h-12 rounded-xl">
+                  <SelectValue placeholder="Select your major" />
+                </SelectTrigger>
+                <SelectContent>
+                  {streams.map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Fun Prompt Card */}
+          <div className="bg-card rounded-2xl shadow-card border border-border/50 p-6 space-y-4">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-accent" />
+              Fun Prompt (Optional)
+            </h3>
+
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2 mb-3">
+                {funPromptSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => setFunPrompt(suggestion)}
+                    className="text-xs px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground hover:bg-primary/10 transition-colors"
+                  >
+                    {suggestion.slice(0, 25)}...
+                  </button>
+                ))}
+              </div>
+              <Textarea
+                value={funPrompt}
+                onChange={(e) => setFunPrompt(e.target.value)}
+                placeholder="Share something fun about yourself..."
+                maxLength={200}
+                rows={3}
+                className="rounded-xl resize-none"
+              />
+              <p className="text-xs text-muted-foreground text-right">{funPrompt.length}/200</p>
+            </div>
+          </div>
+
+          {/* Preferences Card */}
+          <div className="bg-card rounded-2xl shadow-card border border-border/50 p-6 space-y-4">
+            <h3 className="font-semibold flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-primary" />
+              Your Preferences
+            </h3>
+            <p className="text-xs text-muted-foreground">These help us find better matches but don't limit your options!</p>
+
+            <div className="space-y-2">
+              <Label>Preferred Year</Label>
+              <Select value={prefYear} onValueChange={(v) => setPrefYear(v as PreferenceType)}>
+                <SelectTrigger className="h-12 rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any Year</SelectItem>
+                  <SelectItem value="same">Same as Mine</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Preferred Stream</Label>
+              <Select value={prefStream} onValueChange={(v) => setPrefStream(v as PreferenceType)}>
+                <SelectTrigger className="h-12 rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any Stream</SelectItem>
+                  <SelectItem value="same">Same as Mine</SelectItem>
+                  <SelectItem value="different">Different from Mine</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            disabled={loading || !firstName || !stream}
+            className="w-full h-14 rounded-xl gradient-primary hover:opacity-90 text-lg font-medium shadow-glow"
+          >
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+            ) : (
+              <>
+                <Check className="w-5 h-5 mr-2" />
+                {profile ? 'Save Changes' : 'Complete Profile'}
+              </>
+            )}
+          </Button>
+        </form>
+      </div>
+    </AppLayout>
+  );
+};
+
+export default ProfilePage;
