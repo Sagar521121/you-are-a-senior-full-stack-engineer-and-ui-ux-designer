@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/ProfilePage";
 import MatchPage from "./pages/MatchPage";
@@ -45,13 +46,13 @@ const AppRoutes = () => {
 
   return (
     <Routes>
+      <Route path="/" element={<Index />} />
       <Route path="/auth" element={user ? <Navigate to={profile ? "/match" : "/profile"} replace /> : <AuthPage />} />
       <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
       <Route path="/match" element={<ProtectedRoute><MatchPage /></ProtectedRoute>} />
       <Route path="/matches" element={<ProtectedRoute><MatchesPage /></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><ChatsListPage /></ProtectedRoute>} />
       <Route path="/chat/:matchId" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
-      <Route path="/" element={<Navigate to={user ? (profile ? "/match" : "/profile") : "/auth"} replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

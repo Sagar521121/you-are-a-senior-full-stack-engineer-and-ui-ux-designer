@@ -46,7 +46,7 @@ const ChatsListPage = () => {
             const partnerId = match.user1_id === user.id ? match.user2_id : match.user1_id;
             
             const [profileResult, messageResult] = await Promise.all([
-              supabase.from('profiles').select('*').eq('user_id', partnerId).single(),
+              supabase.from('profiles').select('*').eq('user_id', partnerId).maybeSingle(),
               supabase.from('messages').select('*').eq('match_id', match.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
             ]);
 

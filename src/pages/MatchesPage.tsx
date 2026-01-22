@@ -49,7 +49,7 @@ const MatchesPage = () => {
                 .from('profiles')
                 .select('*')
                 .eq('user_id', partnerId)
-                .single();
+                .maybeSingle();
               return { ...match, partner: profile! };
             })
           );
@@ -71,7 +71,7 @@ const MatchesPage = () => {
                 .from('profiles')
                 .select('*')
                 .eq('user_id', invite.from_user_id)
-                .single();
+                .maybeSingle();
               return { ...invite, sender: profile! };
             })
           );
