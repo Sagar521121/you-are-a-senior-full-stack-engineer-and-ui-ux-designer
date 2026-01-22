@@ -19,8 +19,10 @@ export const useEventSettings = () => {
       const { data } = await supabase
         .from('event_settings')
         .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
       
       setEventSettings(data);
       setLoading(false);

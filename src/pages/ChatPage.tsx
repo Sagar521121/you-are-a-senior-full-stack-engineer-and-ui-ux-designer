@@ -39,7 +39,7 @@ const ChatPage = () => {
           .from('matches')
           .select('*')
           .eq('id', matchId)
-          .single();
+          .maybeSingle();
 
         if (!match) {
           toast.error('Match not found');
@@ -53,7 +53,7 @@ const ChatPage = () => {
           .from('profiles')
           .select('*')
           .eq('user_id', partnerId)
-          .single();
+          .maybeSingle();
 
         setPartner(partnerProfile);
 
