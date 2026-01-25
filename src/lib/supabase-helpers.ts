@@ -62,6 +62,9 @@ export const fetchRandomProfile = async (
     return null;
   }
 
+  // Get current user's interests
+  const currentInterests: string[] = (currentProfile as any).interests || [];
+
   // Apply soft preference filtering (weighted random)
   let weightedProfiles = eligibleProfiles.map(profile => {
     let weight = 1;
@@ -79,6 +82,11 @@ export const fetchRandomProfile = async (
         weight += 1;
       }
     }
+    
+    // Interest-based matching - add weight for each shared interest
+    const profileInterests: string[] = (profile as any).interests || [];
+    const sharedInterests = currentInterests.filter(i => profileInterests.includes(i));
+    weight += sharedInterests.length * 1.5; // 1.5 weight per shared interest
     
     return { profile, weight };
   });

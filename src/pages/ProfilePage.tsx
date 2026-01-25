@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, GraduationCap, BookOpen, Sparkles, Settings, Check } from 'lucide-react';
+import { User, GraduationCap, BookOpen, Sparkles, Settings, Check, Heart, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { validateUniversityEmail } from '@/lib/supabase-helpers';
 import type { Database } from '@/integrations/supabase/types';
@@ -26,6 +27,7 @@ const ProfilePage = () => {
   const [year, setYear] = useState<YearType>('1st');
   const [stream, setStream] = useState('');
   const [funPrompt, setFunPrompt] = useState('');
+  const [interests, setInterests] = useState<string[]>([]);
   const [prefYear, setPrefYear] = useState<PreferenceType>('any');
   const [prefStream, setPrefStream] = useState<PreferenceType>('any');
   const [loading, setLoading] = useState(false);
@@ -37,6 +39,7 @@ const ProfilePage = () => {
       setYear(profile.year);
       setStream(profile.stream);
       setFunPrompt(profile.fun_prompt || '');
+      setInterests((profile as any).interests || []);
     }
     if (preferences) {
       setPrefYear(preferences.preferred_year || 'any');
@@ -63,8 +66,9 @@ const ProfilePage = () => {
             gender,
             year,
             stream,
-            fun_prompt: funPrompt || null
-          })
+            fun_prompt: funPrompt || null,
+            interests
+          } as any)
           .eq('user_id', user.id);
 
         if (error) throw error;
@@ -79,8 +83,9 @@ const ProfilePage = () => {
             year,
             stream,
             university: university || 'Unknown',
-            fun_prompt: funPrompt || null
-          });
+            fun_prompt: funPrompt || null,
+            interests
+          } as any);
 
         if (error) throw error;
       }
@@ -147,6 +152,22 @@ const ProfilePage = () => {
     "I'm secretly good at...",
     "My go-to dance move is..."
   ];
+
+  const availableInterests = [
+    'Music', 'Dancing', 'Sports', 'Gaming', 'Movies', 'Reading', 
+    'Travel', 'Food', 'Photography', 'Art', 'Fitness', 'Fashion',
+    'Tech', 'Nature', 'Cooking', 'Netflix', 'Concerts', 'Coffee'
+  ];
+
+  const toggleInterest = (interest: string) => {
+    if (interests.includes(interest)) {
+      setInterests(interests.filter(i => i !== interest));
+    } else if (interests.length < 5) {
+      setInterests([...interests, interest]);
+    } else {
+      toast.error('Maximum 5 interests allowed');
+    }
+  };
 
   return (
     <AppLayout showNav={!!profile}>
@@ -242,6 +263,37 @@ const ProfilePage = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Interests Card */}
+          <div className="bg-card rounded-2xl shadow-card border border-border/50 p-6 space-y-4">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Heart className="w-4 h-4 text-primary" />
+              Your Interests
+            </h3>
+            <p className="text-xs text-muted-foreground">Select up to 5 interests to help find better matches</p>
+
+            <div className="flex flex-wrap gap-2">
+              {availableInterests.map((interest) => {
+                const isSelected = interests.includes(interest);
+                return (
+                  <button
+                    key={interest}
+                    type="button"
+                    onClick={() => toggleInterest(interest)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-1 ${
+                      isSelected
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary text-secondary-foreground hover:bg-primary/10'
+                    }`}
+                  >
+                    {interest}
+                    {isSelected && <X className="w-3 h-3" />}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">{interests.length}/5 selected</p>
           </div>
 
           {/* Fun Prompt Card */}
