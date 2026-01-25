@@ -267,7 +267,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_university: { Args: { user_uuid: string }; Returns: string }
     }
     Enums: {
       gender_type: "boy" | "girl"
