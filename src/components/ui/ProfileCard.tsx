@@ -1,4 +1,5 @@
-import { Heart, X, Sparkles, GraduationCap, BookOpen, Quote } from 'lucide-react';
+import { Heart, X, Sparkles, GraduationCap, BookOpen, Quote, Star } from 'lucide-react';
+import { Badge } from './badge';
 import { Button } from './button';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -58,6 +59,17 @@ export const ProfileCard = ({ profile, onInvite, onSkip, isLoading }: ProfileCar
               <span className="text-sm">{profile.stream}</span>
             </div>
           </div>
+
+          {/* Interests */}
+          {(profile as any).interests && (profile as any).interests.length > 0 && (
+            <div className="mt-4 flex flex-wrap justify-center gap-1.5">
+              {(profile as any).interests.map((interest: string) => (
+                <Badge key={interest} variant="secondary" className="text-xs">
+                  {interest}
+                </Badge>
+              ))}
+            </div>
+          )}
 
           {profile.fun_prompt && (
             <div className="mt-6 p-4 rounded-2xl gradient-secondary border border-border/50">

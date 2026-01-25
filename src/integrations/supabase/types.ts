@@ -144,6 +144,7 @@ export type Database = {
           fun_prompt: string | null
           gender: Database["public"]["Enums"]["gender_type"]
           id: string
+          interests: string[] | null
           is_premium: boolean | null
           last_invite_reset_date: string | null
           stream: string
@@ -159,6 +160,7 @@ export type Database = {
           fun_prompt?: string | null
           gender: Database["public"]["Enums"]["gender_type"]
           id?: string
+          interests?: string[] | null
           is_premium?: boolean | null
           last_invite_reset_date?: string | null
           stream: string
@@ -174,6 +176,7 @@ export type Database = {
           fun_prompt?: string | null
           gender?: Database["public"]["Enums"]["gender_type"]
           id?: string
+          interests?: string[] | null
           is_premium?: boolean | null
           last_invite_reset_date?: string | null
           stream?: string
