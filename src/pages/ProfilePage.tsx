@@ -44,6 +44,8 @@ const ProfilePage = () => {
     }
   }, [profile, preferences]);
 
+  const isNewProfile = !profile;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -106,12 +108,17 @@ const ProfilePage = () => {
         if (error) throw error;
       }
 
+      // Refresh profile and preferences, then navigate
       await refreshProfile();
       await refreshPreferences();
       toast.success('Profile saved successfully!');
       
-      if (!profile) {
-        navigate('/match');
+      // Navigate after state is updated - use isNewProfile which was captured before profile might change
+      if (isNewProfile) {
+        // Small delay to ensure state propagation
+        setTimeout(() => {
+          navigate('/match', { replace: true });
+        }, 100);
       }
     } catch (error: any) {
       toast.error(error.message);
