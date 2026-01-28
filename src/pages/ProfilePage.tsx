@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { User, GraduationCap, BookOpen, Sparkles, Settings, Check, Heart, X } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 import { toast } from 'sonner';
 import { validateUniversityEmail } from '@/lib/supabase-helpers';
 import type { Database } from '@/integrations/supabase/types';
@@ -31,6 +31,8 @@ const ProfilePage = () => {
   const [prefYear, setPrefYear] = useState<PreferenceType>('any');
   const [prefStream, setPrefStream] = useState<PreferenceType>('any');
   const [loading, setLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarBlob, setAvatarBlob] = useState<Blob | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -40,12 +42,37 @@ const ProfilePage = () => {
       setStream(profile.stream);
       setFunPrompt(profile.fun_prompt || '');
       setInterests((profile as any).interests || []);
+      setAvatarUrl((profile as any).avatar_url || null);
     }
     if (preferences) {
       setPrefYear(preferences.preferred_year || 'any');
       setPrefStream(preferences.preferred_stream || 'any');
     }
   }, [profile, preferences]);
+
+  const handleImageCropped = (blob: Blob) => {
+    setAvatarBlob(blob);
+    setAvatarUrl(URL.createObjectURL(blob));
+  };
+
+  const uploadAvatar = async (userId: string): Promise<string | null> => {
+    if (!avatarBlob) return avatarUrl;
+
+    const fileExt = 'jpg';
+    const fileName = `${userId}/avatar.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, avatarBlob, { upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(fileName);
+
+    return `${data.publicUrl}?t=${Date.now()}`;
+  };
 
   const isNewProfile = !profile;
 
@@ -57,6 +84,9 @@ const ProfilePage = () => {
     try {
       const { university } = validateUniversityEmail(user.email || '');
       
+      // Upload avatar if changed
+      const newAvatarUrl = await uploadAvatar(user.id);
+      
       if (profile) {
         // Update existing profile
         const { error } = await supabase
@@ -67,7 +97,8 @@ const ProfilePage = () => {
             year,
             stream,
             fun_prompt: funPrompt || null,
-            interests
+            interests,
+            avatar_url: newAvatarUrl
           } as any)
           .eq('user_id', user.id);
 
@@ -84,7 +115,8 @@ const ProfilePage = () => {
             stream,
             university: university || 'Unknown',
             fun_prompt: funPrompt || null,
-            interests
+            interests,
+            avatar_url: newAvatarUrl
           } as any);
 
         if (error) throw error;
@@ -187,6 +219,20 @@ const ProfilePage = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Photo Upload Card */}
+          <div className="bg-card rounded-2xl shadow-card border border-border/50 p-6 space-y-4">
+            <h3 className="font-semibold flex items-center gap-2 justify-center">
+              <User className="w-4 h-4 text-primary" />
+              Profile Photo
+            </h3>
+
+            <ImageUpload
+              currentImageUrl={avatarUrl}
+              onImageCropped={handleImageCropped}
+              disabled={loading}
+            />
+          </div>
+
           {/* Basic Info Card */}
           <div className="bg-card rounded-2xl shadow-card border border-border/50 p-6 space-y-4">
             <h3 className="font-semibold flex items-center gap-2">

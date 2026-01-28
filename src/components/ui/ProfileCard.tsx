@@ -34,11 +34,19 @@ export const ProfileCard = ({ profile, onInvite, onSkip, isLoading }: ProfileCar
             <Sparkles className="w-8 h-8 text-primary-foreground/50 animate-sparkle" />
           </div>
           <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
-            <div className="w-24 h-24 rounded-full gradient-gold flex items-center justify-center shadow-lg border-4 border-card">
-              <span className="text-4xl font-serif font-bold text-primary">
-                {profile.first_name.charAt(0).toUpperCase()}
-              </span>
-            </div>
+            {(profile as any).avatar_url ? (
+              <img
+                src={(profile as any).avatar_url}
+                alt={profile.first_name}
+                className="w-24 h-24 rounded-full object-cover shadow-lg border-4 border-card"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full gradient-gold flex items-center justify-center shadow-lg border-4 border-card">
+                <span className="text-4xl font-serif font-bold text-primary">
+                  {profile.first_name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
