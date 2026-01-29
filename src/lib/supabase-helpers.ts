@@ -8,14 +8,8 @@ export const getOppositeGender = (gender: 'boy' | 'girl'): 'boy' | 'girl' => {
   return gender === 'boy' ? 'girl' : 'boy';
 };
 
-export const fetchRandomProfile = async (
-  currentUserId: string,
-  currentProfile: Profile,
-  preferences: UserPreferences | null
-): Promise<Profile | null> => {
-  const oppositeGender = getOppositeGender(currentProfile.gender);
-  
-  // Get list of users to exclude (already invited, rejected, matched, skipped, blocked)
+// Shared function to get exclude user IDs
+const getExcludeUserIds = async (currentUserId: string): Promise<Set<string>> => {
   const [invitesResult, matchesResult, skippedResult, blockedResult] = await Promise.all([
     supabase.from('invites').select('to_user_id, from_user_id').or(`from_user_id.eq.${currentUserId},to_user_id.eq.${currentUserId}`),
     supabase.from('matches').select('user1_id, user2_id').or(`user1_id.eq.${currentUserId},user2_id.eq.${currentUserId}`),
@@ -25,23 +19,29 @@ export const fetchRandomProfile = async (
 
   const excludeUserIds = new Set<string>([currentUserId]);
   
-  // Add invited users
   invitesResult.data?.forEach(invite => {
     excludeUserIds.add(invite.to_user_id);
     excludeUserIds.add(invite.from_user_id);
   });
   
-  // Add matched users
   matchesResult.data?.forEach(match => {
     excludeUserIds.add(match.user1_id);
     excludeUserIds.add(match.user2_id);
   });
   
-  // Add skipped users
   skippedResult.data?.forEach(skip => excludeUserIds.add(skip.skipped_user_id));
-  
-  // Add blocked users
   blockedResult.data?.forEach(block => excludeUserIds.add(block.blocked_user_id));
+
+  return excludeUserIds;
+};
+
+export const fetchRandomProfile = async (
+  currentUserId: string,
+  currentProfile: Profile,
+  preferences: UserPreferences | null
+): Promise<Profile | null> => {
+  const oppositeGender = getOppositeGender(currentProfile.gender);
+  const excludeUserIds = await getExcludeUserIds(currentUserId);
 
   // Build query for eligible profiles
   let query = supabase
@@ -70,12 +70,10 @@ export const fetchRandomProfile = async (
     let weight = 1;
     
     if (preferences) {
-      // Year preference
       if (preferences.preferred_year === 'same' && profile.year === currentProfile.year) {
         weight += 2;
       }
       
-      // Stream preference
       if (preferences.preferred_stream === 'same' && profile.stream === currentProfile.stream) {
         weight += 2;
       } else if (preferences.preferred_stream === 'different' && profile.stream !== currentProfile.stream) {
@@ -83,10 +81,9 @@ export const fetchRandomProfile = async (
       }
     }
     
-    // Interest-based matching - add weight for each shared interest
     const profileInterests: string[] = (profile as any).interests || [];
     const sharedInterests = currentInterests.filter(i => profileInterests.includes(i));
-    weight += sharedInterests.length * 1.5; // 1.5 weight per shared interest
+    weight += sharedInterests.length * 1.5;
     
     return { profile, weight };
   });
@@ -102,8 +99,66 @@ export const fetchRandomProfile = async (
     }
   }
 
-  // Fallback to first profile if weighted selection fails
   return weightedProfiles[0]?.profile || null;
+};
+
+export const fetchAllProfiles = async (
+  currentUserId: string,
+  currentProfile: Profile,
+  preferences: UserPreferences | null
+): Promise<Profile[]> => {
+  const oppositeGender = getOppositeGender(currentProfile.gender);
+  const excludeUserIds = await getExcludeUserIds(currentUserId);
+
+  // Build query for eligible profiles
+  let query = supabase
+    .from('profiles')
+    .select('*')
+    .eq('gender', oppositeGender)
+    .eq('university', currentProfile.university);
+
+  // Exclude users
+  const excludeArray = Array.from(excludeUserIds);
+  if (excludeArray.length > 0) {
+    query = query.not('user_id', 'in', `(${excludeArray.join(',')})`);
+  }
+
+  const { data: eligibleProfiles, error } = await query;
+
+  if (error || !eligibleProfiles) {
+    return [];
+  }
+
+  // Get current user's interests
+  const currentInterests: string[] = (currentProfile as any).interests || [];
+
+  // Sort by preference matching and shared interests
+  const sortedProfiles = eligibleProfiles.map(profile => {
+    let score = 0;
+    
+    if (preferences) {
+      if (preferences.preferred_year === 'same' && profile.year === currentProfile.year) {
+        score += 2;
+      }
+      
+      if (preferences.preferred_stream === 'same' && profile.stream === currentProfile.stream) {
+        score += 2;
+      } else if (preferences.preferred_stream === 'different' && profile.stream !== currentProfile.stream) {
+        score += 1;
+      }
+    }
+    
+    const profileInterests: string[] = (profile as any).interests || [];
+    const sharedInterests = currentInterests.filter(i => profileInterests.includes(i));
+    score += sharedInterests.length * 1.5;
+    
+    return { profile, score };
+  });
+
+  // Sort by score (highest first)
+  sortedProfiles.sort((a, b) => b.score - a.score);
+
+  return sortedProfiles.map(p => p.profile);
 };
 
 export const sendInvite = async (fromUserId: string, toUserId: string) => {
