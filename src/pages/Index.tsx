@@ -38,7 +38,7 @@ const Index = () => {
               PromMatch
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground font-light">
-              Find your perfect prom partner
+              Discover someone special for prom night
             </p>
           </div>
 
@@ -54,7 +54,7 @@ const Index = () => {
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <p className="text-sm text-muted-foreground">
-              ✨ Exclusively for university students
+              ✨ Try your luck — connect with students across universities
             </p>
           </div>
         </div>
@@ -75,7 +75,7 @@ const Index = () => {
               How It Works
             </h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Finding your prom partner has never been easier or more exciting
+              Browse profiles, send invites, and find your match — it's that simple
             </p>
           </div>
 
@@ -84,12 +84,12 @@ const Index = () => {
               {
                 icon: Users,
                 title: 'Create Profile',
-                description: 'Sign up with your university email and tell us about yourself'
+                description: 'Sign up with your university email and share your interests'
               },
               {
                 icon: Heart,
-                title: 'Discover Matches',
-                description: 'Browse profiles from your university and send invites to people you like'
+                title: 'Explore Profiles',
+                description: 'Browse students from all universities and send invites to those you vibe with'
               },
               {
                 icon: MessageCircle,
@@ -126,8 +126,8 @@ const Index = () => {
             {[
               {
                 icon: Shield,
-                title: 'University Verified',
-                description: 'Only students from your university can see your profile, keeping the community safe and exclusive.'
+                title: 'Student Only',
+                description: 'Sign up with your university email to join. A safe, exclusive community for students only.'
               },
               {
                 icon: Heart,
@@ -168,7 +168,7 @@ const Index = () => {
             Ready to Find Your Match?
           </h2>
           <p className="text-muted-foreground mb-8">
-            Join thousands of students who found their perfect prom partner on PromMatch
+            Join students across universities and find someone special for prom night
           </p>
           <Button
             onClick={handleGetStarted}
