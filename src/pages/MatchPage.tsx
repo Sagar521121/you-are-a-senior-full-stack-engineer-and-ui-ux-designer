@@ -4,7 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ProfileCard } from '@/components/ui/ProfileCard';
 import { ProfileCardCompact } from '@/components/ui/ProfileCardCompact';
 import { MatchDialog } from '@/components/ui/MatchDialog';
-import { CountdownTimer } from '@/components/ui/CountdownTimer';
+
 import { Button } from '@/components/ui/button';
 import { Sparkles, RefreshCw, Heart, Crown, Loader2, LayoutGrid, Square } from 'lucide-react';
 import { fetchRandomProfile, fetchAllProfiles, sendInvite, skipProfile } from '@/lib/supabase-helpers';
@@ -147,8 +147,6 @@ const MatchPage = () => {
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Countdown */}
-        <CountdownTimer />
 
         {/* View Toggle & Invite Counter */}
         <div className="flex items-center justify-between gap-4">
