@@ -40,15 +40,12 @@ export const fetchRandomProfile = async (
   currentProfile: Profile,
   preferences: UserPreferences | null
 ): Promise<Profile | null> => {
-  const oppositeGender = getOppositeGender(currentProfile.gender);
   const excludeUserIds = await getExcludeUserIds(currentUserId);
 
-  // Build query for eligible profiles
+  // Build query for eligible profiles (no gender or university filter)
   let query = supabase
     .from('profiles')
-    .select('*')
-    .eq('gender', oppositeGender)
-    .eq('university', currentProfile.university);
+    .select('*');
 
   // Exclude users
   const excludeArray = Array.from(excludeUserIds);
@@ -107,15 +104,12 @@ export const fetchAllProfiles = async (
   currentProfile: Profile,
   preferences: UserPreferences | null
 ): Promise<Profile[]> => {
-  const oppositeGender = getOppositeGender(currentProfile.gender);
   const excludeUserIds = await getExcludeUserIds(currentUserId);
 
-  // Build query for eligible profiles
+  // Build query for eligible profiles (no gender or university filter)
   let query = supabase
     .from('profiles')
-    .select('*')
-    .eq('gender', oppositeGender)
-    .eq('university', currentProfile.university);
+    .select('*');
 
   // Exclude users
   const excludeArray = Array.from(excludeUserIds);
