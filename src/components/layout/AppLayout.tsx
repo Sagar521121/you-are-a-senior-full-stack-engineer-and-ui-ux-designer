@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Sparkles, User, Heart, MessageCircle, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CountdownTimer } from '@/components/ui/CountdownTimer';
+
 
 interface AppLayoutProps {
   children: ReactNode;
