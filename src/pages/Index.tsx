@@ -1,13 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useEventSettings } from '@/hooks/useEventSettings';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Heart, Users, Calendar, ArrowRight, Crown, Shield, MessageCircle } from 'lucide-react';
+import { Sparkles, Heart, Users, ArrowRight, Crown, Shield, MessageCircle } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
-  const { timeLeft, isEventActive } = useEventSettings();
 
   const handleGetStarted = () => {
     if (user) {
@@ -44,27 +42,6 @@ const Index = () => {
             </p>
           </div>
 
-          {/* Countdown */}
-          {timeLeft && isEventActive && (
-            <div className="mb-10 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <p className="text-sm text-muted-foreground mb-3 uppercase tracking-wider">Prom Night In</p>
-              <div className="flex items-center justify-center gap-3 md:gap-4">
-                {[
-                  { value: timeLeft.days, label: 'Days' },
-                  { value: timeLeft.hours, label: 'Hours' },
-                  { value: timeLeft.minutes, label: 'Min' },
-                  { value: timeLeft.seconds, label: 'Sec' }
-                ].map((item, i) => (
-                  <div key={item.label} className="text-center">
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-card border border-border/50 shadow-card flex items-center justify-center mb-1">
-                      <span className="text-2xl md:text-3xl font-bold text-gradient">{item.value}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">{item.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* CTA */}
           <div className="space-y-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
@@ -151,11 +128,6 @@ const Index = () => {
                 icon: Shield,
                 title: 'University Verified',
                 description: 'Only students from your university can see your profile, keeping the community safe and exclusive.'
-              },
-              {
-                icon: Calendar,
-                title: 'Time-Limited Magic',
-                description: 'The countdown creates excitement and urgency to find your perfect match before prom night!'
               },
               {
                 icon: Heart,
